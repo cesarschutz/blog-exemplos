@@ -1,0 +1,69 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 1 * *" # todo dia 1, às 6h UTC: roda todos os exemplos
+
+jobs:
+  pastas:
+    name: pastas alteradas
+    runs-on: ubuntu-latest
+    outputs:
+      lista: ${{ steps.pastas.outputs.lista }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: pastas
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          # Um exemplo é uma pasta de primeiro nível com o próprio gradlew.
+          todas=$(find . -mindepth 2 -maxdepth 2 -name gradlew -printf '%h\n' | sed 's|^\./||' | sort -u)
+
+          if [ "$EVENTO" = "workflow_dispatch" ] || [ "$EVENTO" = "schedule" ]; then
+            alvo="$todas"
+          elif [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            alvo="$todas"
+          else
+            mudou=$(git diff --name-only "$BASE" HEAD)
+            if grep -q '^\.github/' <<< "$mudou"; then
+              alvo="$todas"
+            else
+              alvo=$(cut -d/ -f1 <<< "$mudou" | sort -u | grep -Fxf <(echo "$todas") || true)
+            fi
+          fi
+
+          echo "Exemplos a testar:"; echo "${alvo:-(nenhum)}"
+          echo "lista=$(printf '%s\n' $alvo | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+
+  testes:
+    name: ${{ matrix.pasta }}
+    needs: pastas
+    if: needs.pastas.outputs.lista != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pasta: ${{ fromJson(needs.pastas.outputs.lista) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.pasta }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: testes
+        run: ./gradlew test --no-daemon
