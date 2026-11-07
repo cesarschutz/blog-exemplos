@@ -10,6 +10,7 @@ Cada pasta é um exemplo completo e independente, com o mesmo nome (slug) do art
 | --- | --- | --- | --- |
 | [Filtros de serialização no Jackson — mascarando número de cartão nos logs](https://blog.cesarschutz.com.br/posts/jackson-filtros-mascarando-cartao/) | Desenvolvimento de Software | Java 21, Spring Boot 4.1, Jackson 3.2 | [jackson-filtros-mascarando-cartao](jackson-filtros-mascarando-cartao/) |
 | [Criptografia em repouso e em trânsito — o que é e como ativar no Postgres e no MongoDB](https://blog.cesarschutz.com.br/posts/criptografia-em-repouso-e-em-transito/) | Segurança | Java 21, Testcontainers, PostgreSQL 17, Percona 18 (`pg_tde`), MongoDB 8.0, AWS CLI e Terraform no moto | [criptografia-em-repouso-e-em-transito](criptografia-em-repouso-e-em-transito/) |
+| [PIN na camada de aplicação — AES-GCM e JWE quando não há PIN block](https://blog.cesarschutz.com.br/posts/pin-com-aes-gcm-e-jwe/) | Proteção do PIN, do terminal ao emissor (capítulo 7) | Java 21, só o JDK (`javax.crypto`), JUnit 6 | [pin-com-aes-gcm-e-jwe](pin-com-aes-gcm-e-jwe/) |
 
 ## Como rodar um exemplo
 
